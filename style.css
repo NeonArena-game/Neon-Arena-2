@@ -1,0 +1,27 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    touch-action: none;
+    font-family: 'Courier New', monospace;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+}
+
+body.neon-tv-mode {
+    cursor: none;
+    user-select: none;
+}
+
+body.neon-tv-mode canvas {
+    outline: none;
+}
+
+@media (min-width: 1200px) and (pointer: coarse) {
+    body.neon-tv-mode {
+        letter-spacing: 0.02em;
+    }
+}

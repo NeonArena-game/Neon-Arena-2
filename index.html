@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Arena 2</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('assets/thumb/thumb_1024x1024.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            font-family: sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+    <style>
+        html.na-requirements-page, html.na-requirements-page body { min-height:100%; height:100%; overflow:auto !important; }
+        html.na-requirements-page body {
+            display:block; background:#07090d; color:#fff; font-family:Consolas,Monaco,monospace;
+            background-image:radial-gradient(circle at 20% 20%,rgba(0,255,255,.10),transparent 35%),radial-gradient(circle at 80% 80%,rgba(255,0,170,.10),transparent 35%);
+        }
+        .na-req-wrap{max-width:1050px;margin:0 auto;padding:42px 22px 60px}
+        .na-req-title{font-size:32px;color:#00ffff;text-shadow:0 0 14px rgba(0,255,255,.55);margin:0 0 10px}
+        .na-req-sub{color:#b7c7d0;margin:0 0 26px;line-height:1.55}
+        .na-req-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+        .na-req-card{background:rgba(10,14,20,.94);border:1px solid #17444c;border-radius:10px;padding:20px;box-shadow:0 0 24px rgba(0,255,255,.06)}
+        .na-req-card h2{margin:0 0 14px;color:#66ffff;font-size:20px}.na-req-card:nth-child(2) h2{color:#ffd75a}.na-req-card:nth-child(3) h2{color:#ff66d9}.na-req-card:nth-child(4) h2{color:#b66cff}
+        .na-req-card ul{margin:0;padding-left:21px;line-height:1.75;color:#d9e4e8}.na-req-note{margin-top:22px;padding:15px;border-left:3px solid #00ffff;background:#0b1519;color:#b9cbd0;line-height:1.55}
+        .na-req-back{display:inline-block;margin-top:24px;padding:10px 16px;background:#12252b;color:#00ffff;border:1px solid #00ffff;border-radius:6px;text-decoration:none}.na-req-back:hover{background:#17343d}
+        .na-save-wrap{max-width:900px}.na-save-card{background:rgba(10,14,20,.94);border:1px solid #17444c;border-radius:10px;padding:20px;margin:16px 0;box-shadow:0 0 24px rgba(0,255,255,.06)}.na-save-card h2{margin:0 0 10px;color:#66ffff;font-size:20px}.na-save-card p{color:#d9e4e8;line-height:1.6}.na-save-card button{display:inline-block;margin:8px 8px 0 0;padding:11px 16px;background:#102a31;color:#00ffff;border:1px solid #00ffff;border-radius:7px;font:700 14px Consolas,monospace;cursor:pointer}.na-save-card button:hover{background:#17434d}.na-save-warning{border-color:#66541b}.na-save-warning h2{color:#ffd75a}.na-save-status{margin-top:18px;padding:14px;background:#0b1519;border-left:3px solid #00ffff;color:#b9cbd0;line-height:1.5}
+        @media(max-width:800px){.na-req-grid{grid-template-columns:1fr}.na-req-title{font-size:25px}}
+    </style>
+    <script>
+        // v5.26 — Modo de Economia de Energia por subpágina.
+        // 5 minutos sem interação no Neon Arena 2 -> ?economy-mode=true.
+        // A subpágina não carrega Phaser, Services ou game.js.
+        (function(){
+            const ECONOMY_QUERY = '?economy-mode=true';
+            const TIMEOUT_MS = 5 * 60 * 1000;
+            const params = new URLSearchParams(location.search);
+            const isEconomyPage = params.get('economy-mode') === 'true';
+            const mainUrl = () => location.pathname + (location.hash || '');
+
+            if (isEconomyPage) {
+                window.NA_ECONOMY_MODE = true;
+                const applyEconomyPage = () => {
+                    document.title = 'Neon Arena 2 — Economia de energia';
+                    document.documentElement.style.cssText = 'margin:0!important;padding:0!important;width:100%!important;height:100%!important;background:#000!important;overflow:hidden!important;';
+                    document.body.style.cssText = 'margin:0!important;padding:0!important;width:100%!important;height:100%!important;background:#000!important;overflow:hidden!important;cursor:default!important;';
+                    document.body.innerHTML = '';
+                };
+                const wake = () => location.replace(mainUrl());
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyEconomyPage, {once:true});
+                else applyEconomyPage();
+                ['pointerdown','touchstart','keydown'].forEach(type => window.addEventListener(type, wake, {passive:true, once:true}));
+                return;
+            }
+
+            let lastActivity = Date.now();
+            let economyTimer = null;
+            const registerActivity = () => { lastActivity = Date.now(); };
+            ['pointerdown','mousedown','touchstart','keydown','wheel'].forEach(type => {
+                window.addEventListener(type, registerActivity, {passive:true});
+            });
+            const enterEconomyMode = () => {
+                const url = new URL(location.href);
+                url.search = ECONOMY_QUERY;
+                url.hash = '';
+                location.replace(url.href);
+            };
+            economyTimer = window.setInterval(() => {
+                if (Date.now() - lastActivity >= TIMEOUT_MS) enterEconomyMode();
+            }, 1000);
+            window.addEventListener('pagehide', () => {
+                if (economyTimer) clearInterval(economyTimer);
+            }, {once:true});
+        })();
+    </script>
+    <script>
+        // v5.24 — Página secreta de Backup/Transferência de Dados.
+        // O navegador não pode gravar diretamente em data/, então o fluxo é:
+        // Exportar -> baixar JSON -> colocar em data/neon-arena-2-save.json.
+        // Importar aceita arquivo local ou tenta carregar esse arquivo da pasta data/.
+        (function(){
+            if (location.search !== '?save-data') return;
+            window.NA_SAVE_DATA_PAGE = true;
+            document.documentElement.classList.add('na-requirements-page');
+            document.addEventListener('DOMContentLoaded', function(){
+                document.body.innerHTML = `
+                    <main class="na-req-wrap na-save-wrap">
+                        <h1 class="na-req-title">💾 Neon Arena 2 — Dados Portáteis</h1>
+                        <p class="na-req-sub">Exporte seu progresso para um arquivo JSON e leve seus dados para outro navegador ou outro PC. O arquivo contém os dados salvos no navegador, incluindo progresso, conquistas, configurações e desbloqueios.</p>
+                        <section class="na-save-card">
+                            <h2>📤 EXPORTAR DADOS</h2>
+                            <p>Cria um arquivo <b>neon-arena-2-save.json</b> com os dados atuais.</p>
+                            <button id="na-save-export">📥 BAIXAR JSON</button>
+                        </section>
+                        <section class="na-save-card">
+                            <h2>📥 IMPORTAR DADOS</h2>
+                            <p>Você pode selecionar qualquer backup JSON válido ou colocar o arquivo como <b>data/neon-arena-2-save.json</b> e usar o botão abaixo.</p>
+                            <button id="na-save-file">📂 SELECIONAR JSON</button>
+                            <button id="na-save-folder">📁 CARREGAR DE data/</button>
+                            <input id="na-save-input" type="file" accept="application/json,.json" style="display:none">
+                        </section>
+                        <section class="na-save-card na-save-warning">
+                            <h2>⚠️ IMPORTANTE</h2>
+                            <p>Importar substitui os dados atuais do navegador pelos dados do arquivo. Faça um backup antes de importar se quiser preservar o progresso atual.</p>
+                        </section>
+                        <div id="na-save-status" class="na-save-status">Status: pronto.</div>
+                        <a class="na-req-back" href="./">← Voltar para o Neon Arena 2</a>
+                    </main>`;
+
+                const status = document.getElementById('na-save-status');
+                const input = document.getElementById('na-save-input');
+                const STORAGE_VERSION = 1;
+
+                function collectSave(){
+                    const localStorageData = {};
+                    for (let i=0; i<localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key != null) localStorageData[key] = localStorage.getItem(key);
+                    }
+                    return {
+                        format: 'NeonArena2Save',
+                        version: STORAGE_VERSION,
+                        exportedAt: new Date().toISOString(),
+                        game: 'Neon Arena 2',
+                        localStorage: localStorageData
+                    };
+                }
+
+                function downloadSave(){
+                    const blob = new Blob([JSON.stringify(collectSave(), null, 2)], {type:'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'neon-arena-2-save.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    status.textContent = '✅ Backup criado: neon-arena-2-save.json';
+                }
+
+                function applySave(data){
+                    if (!data || data.format !== 'NeonArena2Save' || !data.localStorage || typeof data.localStorage !== 'object' || Array.isArray(data.localStorage)) {
+                        throw new Error('Formato de backup inválido.');
+                    }
+                    const entries = Object.entries(data.localStorage);
+                    entries.forEach(([key,value]) => {
+                        if (typeof key !== 'string' || typeof value !== 'string') return;
+                        localStorage.setItem(key, value);
+                    });
+                    status.textContent = `✅ ${entries.length} dados importados. Reiniciando o Neon Arena 2...`;
+                    setTimeout(() => location.href = './', 700);
+                }
+
+                async function loadDataFolder(){
+                    status.textContent = '⏳ Procurando data/neon-arena-2-save.json...';
+                    try {
+                        const response = await fetch('data/neon-arena-2-save.json', {cache:'no-store'});
+                        if (!response.ok) throw new Error('Arquivo não encontrado.');
+                        applySave(await response.json());
+                    } catch (error) {
+                        status.textContent = '❌ Não foi possível carregar data/neon-arena-2-save.json. Coloque o backup nessa pasta e tente novamente.';
+                    }
+                }
+
+                document.getElementById('na-save-export').onclick = downloadSave;
+                document.getElementById('na-save-file').onclick = () => input.click();
+                document.getElementById('na-save-folder').onclick = loadDataFolder;
+                input.onchange = () => {
+                    const file = input.files && input.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try { applySave(JSON.parse(reader.result)); }
+                        catch (error) { status.textContent = '❌ Backup inválido ou corrompido.'; }
+                    };
+                    reader.readAsText(file);
+                };
+            }, {once:true});
+        })();
+    </script>
+    <script>
+        (function(){
+            if (location.search === '?more-visual-effects-requisits') {
+                window.NA_REQUIREMENTS_PAGE = true;
+                document.documentElement.classList.add('na-requirements-page');
+                document.addEventListener('DOMContentLoaded', function(){
+                    document.body.innerHTML = `
+                        <main class="na-req-wrap">
+                            <h1 class="na-req-title">✨ Neon Arena 2 — Mais Efeitos Visuais</h1>
+                            <p class="na-req-sub">Requisitos estimados para usar o pacote de efeitos visuais com diferentes níveis de qualidade. O modo <b>AUTO</b> adapta os efeitos ao preset de desempenho escolhido. O nível <b>ULTRA</b> é o novo nível máximo e exige o hardware mais forte desta página.</p>
+                            <section class="na-req-grid">
+                                <article class="na-req-card"><h2>🟢 MÍNIMOS</h2><ul><li>CPU: 2 núcleos / 4 threads</li><li>RAM: 4 GB</li><li>GPU: compatível com WebGL</li><li>Navegador atualizado com aceleração gráfica</li><li>Efeitos: <b>LOW</b></li><li>Resolução alvo: até 1280×720</li></ul></article>
+                                <article class="na-req-card"><h2>🟡 IDEAIS</h2><ul><li>CPU: 4 núcleos / 4 threads</li><li>RAM: 8 GB</li><li>GPU: integrada moderna com WebGL 2</li><li>Aceleração gráfica ativada</li><li>Efeitos: <b>MEDIUM / AUTO</b></li><li>Resolução alvo: 1600×900 ou 1920×1080</li></ul></article>
+                                <article class="na-req-card"><h2>🟣 RECOMENDADOS</h2><ul><li>CPU: 4+ núcleos / 8 threads</li><li>RAM: 8 GB ou mais</li><li>GPU: dedicada ou integrada moderna de maior desempenho</li><li>WebGL 2 + aceleração gráfica ativada</li><li>Efeitos: <b>HIGH</b></li><li>Resolução alvo: 1920×1080+</li></ul></article>
+                                <article class="na-req-card"><h2>💜 ULTRA — REQUISITO MÁXIMO</h2><ul><li>CPU: 6+ núcleos / 12 threads</li><li>RAM: 16 GB ou mais</li><li>GPU: dedicada de médio/alto desempenho com WebGL 2</li><li>Aceleração gráfica obrigatória</li><li>Efeitos: <b>ULTRA</b></li><li>Resolução alvo: 2560×1440 ou superior</li><li>Recomendado: monitor 120 Hz+</li></ul></article>
+                            </section>
+                            <div class="na-req-note"><b>💡 Importante:</b> estes são requisitos de referência para o pacote visual, não requisitos rígidos do Neon Arena 2 inteiro. Se a máquina apresentar quedas de FPS, use <b>LOW</b>, <b>AUTO</b> ou um nível inferior ao <b>ULTRA</b>. Os efeitos continuam sendo temporários e limitados para evitar acúmulo de objetos.</div>
+                            <a class="na-req-back" href="./">← Voltar para o Neon Arena 2</a>
+                        </main>`;
+                });
+            }
+        })();
+    </script>
+    <script>
+        // v5.25 — Página de requisitos do Better Details.
+        (function(){
+            if (location.search !== '?better-details-requisits') return;
+            window.NA_REQUIREMENTS_PAGE = true;
+            document.documentElement.classList.add('na-requirements-page');
+            document.addEventListener('DOMContentLoaded', function(){
+                const lang = localStorage.getItem('neon_language') || 'pt-BR';
+                const T = {
+                    'pt-BR': {title:'✨ Neon Arena 2 — Better Details',sub:'Requisitos estimados para os níveis de Detalhes Melhorados. O modo OFF mantém o visual básico para priorizar desempenho.',min:'🟢 MÍNIMOS',ideal:'🟡 IDEAIS',rec:'🟣 RECOMENDADOS',max:'💜 MÁXIMOS',off:'🚫 OFF',back:'← Voltar para o Neon Arena 2',note:'💡 Importante',noteBody:'Estes são requisitos de referência do Better Details, não requisitos rígidos do Neon Arena 2 inteiro. O nível ULTRA é opcional e pode reduzir o FPS em computadores mais antigos.',cpu:'CPU',ram:'RAM',gpu:'GPU',storage:'Espaço livre',webgl:'WebGL 2',browser:'Navegador',accel:'Aceleração gráfica',res:'Resolução alvo',level:'Nível gráfico'},
+                    'pt-PT': {title:'✨ Neon Arena 2 — Better Details',sub:'Requisitos estimados para os níveis de Detalhes Melhorados. O modo OFF mantém o visual básico para dar prioridade ao desempenho.',min:'🟢 MÍNIMOS',ideal:'🟡 IDEAIS',rec:'🟣 RECOMENDADOS',max:'💜 MÁXIMOS',off:'🚫 OFF',back:'← Voltar para o Neon Arena 2',note:'💡 Importante',noteBody:'Estes são requisitos de referência do Better Details, não requisitos rígidos de todo o Neon Arena 2. O nível ULTRA é opcional e pode reduzir o FPS em computadores mais antigos.',cpu:'CPU',ram:'RAM',gpu:'GPU',storage:'Espaço livre',webgl:'WebGL 2',browser:'Navegador',accel:'Aceleração gráfica',res:'Resolução alvo',level:'Nível gráfico'},
+                    'en': {title:'✨ Neon Arena 2 — Better Details',sub:'Estimated requirements for the Better Details quality levels. OFF keeps the basic visual package to prioritize performance.',min:'🟢 MINIMUM',ideal:'🟡 IDEAL',rec:'🟣 RECOMMENDED',max:'💜 MAXIMUM',off:'🚫 OFF',back:'← Back to Neon Arena 2',note:'💡 Important',noteBody:'These are reference requirements for Better Details, not strict requirements for the entire Neon Arena 2. ULTRA is optional and may reduce FPS on older computers.',cpu:'CPU',ram:'RAM',gpu:'GPU',storage:'Free storage',webgl:'WebGL 2',browser:'Browser',accel:'Hardware acceleration',res:'Target resolution',level:'Graphics level'},
+                    'es': {title:'✨ Neon Arena 2 — Better Details',sub:'Requisitos estimados para los niveles de Detalles Mejorados. OFF mantiene el paquete visual básico para priorizar el rendimiento.',min:'🟢 MÍNIMOS',ideal:'🟡 IDEALES',rec:'🟣 RECOMENDADOS',max:'💜 MÁXIMOS',off:'🚫 OFF',back:'← Volver a Neon Arena 2',note:'💡 Importante',noteBody:'Estos son requisitos de referencia para Better Details, no requisitos estrictos de todo Neon Arena 2. ULTRA es opcional y puede reducir los FPS en equipos antiguos.',cpu:'CPU',ram:'RAM',gpu:'GPU',storage:'Espacio libre',webgl:'WebGL 2',browser:'Navegador',accel:'Aceleración gráfica',res:'Resolución objetivo',level:'Nivel gráfico'}
+                }[lang] || null;
+                const t = T || arguments[0];
+                const data = lang === 'en' ? {
+                    min:['4 cores / 4 threads','8 GB','Integrated GPU with WebGL 2','2 GB','WebGL 2','Compatible browser','Required','1280×720','LOW'],
+                    ideal:['4 cores / 8 threads','16 GB','Modern entry-level dedicated GPU or strong integrated GPU','4 GB','WebGL 2','Modern browser','Required','1920×1080','MEDIUM'],
+                    rec:['6+ cores / 12 threads','16 GB+','Mid-range dedicated GPU','8 GB','WebGL 2','Updated modern browser','Required','1920×1080+','HIGH'],
+                    max:['8+ cores / 16 threads','32 GB','High-performance dedicated GPU','12 GB','WebGL 2','Updated modern browser','Required','2560×1440+','ULTRA']
+                } : {
+                    min:['4 núcleos / 4 threads','8 GB','GPU integrada com WebGL 2','2 GB','WebGL 2','Navegador compatível','Obrigatória','1280×720','LOW'],
+                    ideal:['4 núcleos / 8 threads','16 GB','GPU dedicada de entrada moderna ou integrada forte','4 GB','WebGL 2','Navegador moderno','Obrigatória','1920×1080','MEDIUM'],
+                    rec:['6+ núcleos / 12 threads','16 GB+','GPU dedicada de médio desempenho','8 GB','WebGL 2','Navegador moderno atualizado','Obrigatória','1920×1080+','HIGH'],
+                    max:['8+ núcleos / 16 threads','32 GB','GPU dedicada de alto desempenho','12 GB','WebGL 2','Navegador moderno atualizado','Obrigatória','2560×1440+','ULTRA']
+                };
+                function card(title, vals){
+                    const labels=[t.cpu,t.ram,t.gpu,t.storage,t.webgl,t.browser,t.accel,t.res,t.level];
+                    return `<article class="na-req-card"><h2>${title}</h2><ul>${labels.map((x,i)=>`<li>${x}: <b>${vals[i]}</b></li>`).join('')}</ul></article>`;
+                }
+                document.body.innerHTML=`<main class="na-req-wrap"><h1 class="na-req-title">${t.title}</h1><p class="na-req-sub">${t.sub}</p><section class="na-req-grid">${card(t.min,data.min)}${card(t.ideal,data.ideal)}${card(t.rec,data.rec)}${card(t.max,data.max)}</section><div class="na-req-note"><b>${t.off}:</b> ${lang==='en'?'No Better Details processing is used; the normal Visual FX setting remains independent.':'Nenhum processamento do Better Details é usado; a configuração normal de Visual FX continua independente.'}<br><br><b>${t.note}:</b> ${t.noteBody}</div><a class="na-req-back" href="./">${t.back}</a></main>`;
+            }, {once:true});
+        })();
+    </script>
+    <script>
+        // v5.21 — Página de Debug Mode. A senha é uma trava local de acesso,
+        // não um mecanismo de segurança criptográfica (o código é client-side).
+        (function(){
+            const params = new URLSearchParams(location.search);
+            if (params.get('debug-mode') !== 'true') return;
+
+            const DEBUG_PASSWORD = 'NA2-DEBUG-2026';
+            window.__NA2_DEBUG_AUTHENTICATED__ = false;
+
+            function showDebugAuth(){
+                const overlay = document.createElement('div');
+                overlay.id = 'na2-debug-auth';
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:radial-gradient(circle at 50% 35%,#10232b 0,#05070b 55%,#020304 100%);display:flex;align-items:center;justify-content:center;color:#fff;font:15px Consolas,Monaco,monospace;';
+                overlay.innerHTML = `
+                    <form id="na2-debug-auth-form" style="width:min(420px,calc(100vw - 36px));box-sizing:border-box;background:#080d13;border:2px solid #00ffff;border-radius:14px;padding:26px;box-shadow:0 0 35px rgba(0,255,255,.25);text-align:center">
+                        <div style="font-size:34px;margin-bottom:8px">🛠️</div>
+                        <h1 style="margin:0 0 8px;color:#00ffff;font-size:24px">NEON ARENA 2 DEBUG</h1>
+                        <p style="color:#a9bdc6;line-height:1.5;margin:0 0 20px">Esta página ativa ferramentas internas de teste. Digite a senha para continuar.</p>
+                        <input id="na2-debug-password" type="password" autocomplete="off" placeholder="Senha do Debug Mode" style="width:100%;box-sizing:border-box;background:#101923;color:#fff;border:1px solid #2c5963;border-radius:7px;padding:12px;font:15px Consolas,monospace;outline:none">
+                        <button type="submit" style="width:100%;margin-top:12px;background:#00a8a8;color:#001416;border:0;border-radius:7px;padding:12px;font:bold 15px Consolas,monospace;cursor:pointer">🔓 ENTRAR NO DEBUG</button>
+                        <div id="na2-debug-auth-error" style="min-height:20px;margin-top:12px;color:#ff6677"></div>
+                        <div style="font-size:11px;color:#617783;margin-top:8px">Aperte H dentro do jogo para abrir o painel.</div>
+                    </form>`;
+                document.body.appendChild(overlay);
+                const form = overlay.querySelector('#na2-debug-auth-form');
+                const input = overlay.querySelector('#na2-debug-password');
+                const error = overlay.querySelector('#na2-debug-auth-error');
+                input.focus();
+                form.addEventListener('submit', function(event){
+                    event.preventDefault();
+                    if (input.value === DEBUG_PASSWORD) {
+                        window.__NA2_DEBUG_AUTHENTICATED__ = true;
+                        overlay.remove();
+                        if (window.NA2_DEBUG) window.NA2_DEBUG.authenticated = true;
+                    } else {
+                        error.textContent = '❌ Senha incorreta.';
+                        input.value = '';
+                        input.focus();
+                    }
+                });
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showDebugAuth, {once:true});
+            else showDebugAuth();
+        })();
+    </script>
+
+</head>
+<body>
+
+    <!-- Input oculto para carregar a skin personalizada 8x8 do computador -->
+    <input type="file" id="skin-file-input" accept="image/png, image/jpeg" style="display: none;">
+
+    <script>
+        const skinFileInput = document.getElementById('skin-file-input');
+        if (skinFileInput) skinFileInput.addEventListener('change', (event) => {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = (e) => {
+                    let base64Image = e.target.result;
+                    localStorage.setItem('neon_custom_skin_data', base64Image);
+                    alert('Skin 8x8 carregada com sucesso! Recarregue a partida para aplicar.');
+                    location.reload();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+    <!-- v5.26 — Runtime do NA2. No modo de economia, nada é carregado. -->
+    <script>
+        if (!window.NA_ECONOMY_MODE) {
+            const naRuntimeScripts = [
+                'https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js',
+                'NA2-Services.js',
+                'game.js'
+            ];
+            let naRuntimeIndex = 0;
+            const loadNextNA2Script = () => {
+                if (naRuntimeIndex >= naRuntimeScripts.length) return;
+                const script = document.createElement('script');
+                script.src = naRuntimeScripts[naRuntimeIndex++];
+                script.onload = loadNextNA2Script;
+                document.body.appendChild(script);
+            };
+            loadNextNA2Script();
+        }
+    </script>
+    <!-- Drop Updates oficiais já estão incorporadas diretamente em game.js. -->
+</body>
+</html>
