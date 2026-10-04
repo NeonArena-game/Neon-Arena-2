@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#00f6ff"/><stop offset="1" stop-color="#ff3bf2"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="120" rx="22" fill="#050814" stroke="url(#g)" stroke-width="3"/>
+  <circle cx="58" cy="60" r="34" fill="#071525" stroke="#00f6ff" stroke-width="3"/>
+  <path d="M38 73 L50 43 L59 62 L69 43 L79 73" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+  <text x="105" y="70" font-family="Arial,sans-serif" font-size="38" font-weight="900" letter-spacing="2" fill="#fff">NEON ARENA</text>
+  <path d="M106 84 H355" stroke="url(#g)" stroke-width="3" stroke-linecap="round"/>
+</svg>
